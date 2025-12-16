@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Calculator - Coach Chris</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Import custom fonts from Code Block 1 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Oswald:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        .font-brand {
+            font-family: 'Oswald', sans-serif;
+        }
+
+        /* Input styling for the dark theme (Code Block 1) */
+        input, select {
+            background-color: #111111;
+            border: 1px solid #333333;
+            color: #ffffff;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #ffffff;
+            box-shadow: 0 0 0 1px #ffffff;
+        }
+
+        /* Responsive container to mimic the original modal width */
+        .calculator-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 1.5rem; /* p-6 */
+        }
+
+        /* Hide the default number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Styling for the custom unit toggle switch */
+        .unit-toggle-bg-metric {
+            background-color: #333333; /* Dark gray for metric (default) */
+        }
+        .unit-toggle-bg-imperial {
+            background-color: #ffffff; /* White when switched to Imperial */
+        }
+        .unit-toggle-switch-metric {
+            transform: translateX(0);
+            background-color: #ffffff;
+        }
+        .unit-toggle-switch-imperial {
+            transform: translateX(20px);
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center antialiased">
+
+    <!-- Header / Branding Area (Code Block 1) -->
+    <header class="w-full calculator-container px-6 py-8 flex justify-between items-start">
+        <div class="flex flex-col select-none">
+            <h1 class="font-brand font-bold text-4xl leading-none tracking-wide text-white mb-1">COACH CHRIS</h1>
+            <h2 class="font-brand font-bold text-lg leading-none text-gray-400 mb-[2px]">CIRCULAR ROOTS COACHING</h2>
+            <h3 class="font-brand font-bold text-lg leading-none text-gray-600">TRAIN UNCNVNTNL</h3>
+        </div>
+        
+        <div class="text-white pt-1">
+            <i data-lucide="utensils" class="w-8 h-8"></i>
+        </div>
+    </header>
+
+    <!-- Main Content: Calorie & Macro Calculator -->
+    <main class="flex-grow w-full flex justify-center pb-12">
+        <div id="macro-calculator" class="calculator-container pt-8 sm:p-8">
+            <h2 class="font-brand text-4xl uppercase tracking-widest font-bold mb-4 text-center">Calorie & Macro Calculator</h2>
+            <p class="text-center text-sm text-gray-400 mb-8">
+                Calculate your estimated targets based on your goals and activity.
+            </p>
+            
+            <!-- Unit System Toggle (Logic from Code Block 2, adapted visually) -->
+            <div class="flex justify-center items-center space-x-2 mb-6">
+                <span id="unit-label-metric" class="text-sm font-bold text-white">Metric (kg/cm)</span>
+                <button type="button" id="unit-toggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white unit-toggle-bg-metric" role="switch" aria-checked="false">
+                    <span class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 unit-toggle-switch-metric"></span>
+                </button>
+                <span id="unit-label-imperial" class="text-sm font-medium text-gray-500">Imperial (lbs/ft/in)</span>
+            </div>
+
+            <!-- Input Form (Structure and required fields from Code Block 2) -->
+            <form id="calculator-form" class="space-y-4">
+                
+                <!-- Gender -->
+                <div>
+                    <label for="gender" class="text-sm font-bold block mb-1">Gender</label>
+                    <select id="gender" required class="w-full">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+
+                <!-- Age -->
+                <div>
+                    <label for="age" class="text-sm font-bold block mb-1">Age (Years)</label>
+                    <input type="number" id="age" min="15" max="100" placeholder="e.g. 30" required class="w-full">
+                </div>
+
+                <!-- Weight Input Group (Dynamically Swapped) -->
+                <div id="weight-input-group">
+                    <!-- Metric Weight (Default) -->
+                    <div id="weight_kg_group">
+                        <label for="weight_kg" class="text-sm font-bold block mb-1">Weight (kg)</label>
+                        <input type="number" id="weight_kg" min="30" max="300" step="0.1" placeholder="e.g. 80.5" class="w-full" required>
+                    </div>
+                    <!-- Imperial Weight (Hidden) -->
+                    <div id="weight_lbs_group" class="hidden">
+                        <label for="weight_lbs" class="text-sm font-bold block mb-1">Weight (lbs)</label>
+                        <input type="number" id="weight_lbs" min="66" max="660" step="0.1" placeholder="e.g. 177.5" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Height Input Group (Dynamically Swapped) -->
+                <div id="height-input-group">
+                    <!-- Metric Height (Default) -->
+                    <div id="height_cm_group">
+                        <label for="height_cm" class="text-sm font-bold block mb-1">Height (cm)</label>
+                        <input type="number" id="height_cm" min="100" max="250" placeholder="e.g. 180" class="w-full" required>
+                    </div>
+                    <!-- Imperial Height (Hidden) -->
+                    <div id="height_ft_in_group" class="hidden grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="height_ft" class="text-sm font-bold block mb-1">Height (feet)</label>
+                            <input type="number" id="height_ft" min="3" max="8" placeholder="e.g. 5" class="w-full">
+                        </div>
+                        <div>
+                            <label for="height_in" class="text-sm font-bold block mb-1">Height (inches)</label>
+                            <input type="number" id="height_in" min="0" max="11" placeholder="e.g. 10" class="w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Level -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="activity" class="text-sm font-bold block">Activity Level</label>
+                        <button type="button" id="info-activity-btn" class="text-gray-400 hover:text-white transition duration-150 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1" aria-label="Information on activity levels">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <select id="activity" required class="w-full">
+                        <option value="">Select Activity Level</option>
+                        <option value="1.2">Sedentary (Little or no exercise)</option>
+                        <option value="1.375">Light (Light exercise/sports 1-3 days/week)</option>
+                        <option value="1.55">Moderate (Moderate exercise/sports 3-5 days/week)</option>
+                        <option value="1.725">Very Active (Hard exercise/sports 6-7 days/week)</option>
+                        <option value="1.9">Extra Active (Very hard exercise/physical job)</option>
+                    </select>
+                </div>
+
+                <!-- Target Goal -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="goal" class="text-sm font-bold block">Target Goal</label>
+                        <button type="button" id="info-goal-btn" class="text-gray-400 hover:text-white transition duration-150 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1" aria-label="Information on fitness goals">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <select id="goal" required class="w-full">
+                        <option value="">Select Goal</option>
+                        <option value="fatloss">Fat Loss (Calorie Deficit)</option>
+                        <option value="recomp">Body Recomposition (Maintenance)</option>
+                        <option value="muscle">Muscle Building (Calorie Surplus)</option>
+                    </select>
+                </div>
+
+                <!-- Macronutrient Split -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="macro-split" class="text-sm font-bold block">Macronutrient Split (P:F:C)</label>
+                        <button type="button" id="info-macro-split-btn" class="text-gray-400 hover:text-white transition duration-150 focus:outline-none focus:ring-2 focus:ring-white rounded-full p-1" aria-label="Information on macronutrient splits">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <select id="macro-split" required class="w-full">
+                        <option value="">Select Split</option>
+                        <!-- Value stores P-F-C, description shows P:F:C -->
+                        <option value="40-20-40">Balanced (40% Protein : 20% Fat : 40% Carbs)</option>
+                        <option value="30-30-40">Moderate (30% Protein : 30% Fat : 40% Carbs)</option>
+                        <option value="50-20-30">High Protein (50% Protein : 20% Fat : 30% Carbs)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" id="calculate-btn" class="w-full mt-6 py-4 bg-white text-black text-xl font-bold uppercase rounded-sm hover:opacity-80 transition-opacity">
+                    Calculate My Targets
+                </button>
+            </form>
+
+            <!-- Result Display (Structure from Block 2, Styling from Block 1) -->
+            <div id="results" class="hidden mt-8 pt-6 border-t border-gray-700 space-y-6">
+                <h3 class="text-2xl font-brand uppercase tracking-wider mb-4 text-center" id="results-title">Your Targets</h3>
+                
+                <!-- Calorie Target -->
+                <div class="p-4 border border-white rounded-lg text-center bg-gray-900">
+                    <p class="text-sm uppercase text-gray-400" id="goal-calorie-label">Goal Calorie Target</p>
+                    <p class="text-5xl font-brand font-bold mt-1" id="calorie-target">2500</p>
+                    <p class="text-lg uppercase text-gray-400">Calories per day</p>
+                </div>
+
+                <!-- Macros Section -->
+                <div class="space-y-4">
+                    <h4 class="text-lg font-bold uppercase text-center">Macro Split (Grams)</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700">
+                            <p class="text-xs uppercase text-red-400 font-bold">Protein</p>
+                            <p class="text-2xl font-brand font-bold mt-1" id="protein-g">183g</p>
+                        </div>
+                        <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700">
+                            <p class="text-xs uppercase text-blue-400 font-bold">Fat</p>
+                            <p class="text-2xl font-brand font-bold mt-1" id="fat-g">83g</p>
+                        </div>
+                        <div class="bg-gray-900 p-3 rounded-lg text-center border border-gray-700">
+                            <p class="text-xs uppercase text-green-400 font-bold">Carbs</p>
+                            <p class="text-2xl font-brand font-bold mt-1" id="carbs-g">187g</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center text-sm text-gray-500 pt-3 border-t border-gray-800">
+                        <span class="font-medium">Est. TDEE (Maintenance):</span>
+                        <span class="font-bold text-white" id="tdee-val"></span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" id="copy-results-btn" class="flex-1 flex items-center justify-center py-3 px-3 text-sm font-bold text-black bg-white rounded-sm hover:opacity-90 transition duration-300 uppercase">
+                        <i data-lucide="clipboard-copy" class="w-4 h-4 mr-2"></i>
+                        Copy Targets
+                    </button>
+                    <button type="button" id="reset-btn" class="flex-1 flex items-center justify-center py-3 px-3 text-sm font-bold text-white bg-gray-800 rounded-sm hover:bg-gray-700 transition duration-300 uppercase">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                        Reset
+                    </button>
+                </div>
+                
+                <!-- Adjustment Guide Section (from Code Block 2) -->
+                <div class="mt-6 pt-5 border-t border-gray-700">
+                    <h4 class="text-sm font-bold uppercase text-white mb-3 border-b border-gray-700 pb-2">Important: Weight Tracking & Adjustments</h4>
+                    
+                    <p class="text-xs text-gray-400 mb-3">
+                        These are initial targets. If your weight is not trending as expected after 1-2 weeks of strict adherence, you need to adjust:
+                    </p>
+
+                    <div class="space-y-3">
+                        <div class="p-3 bg-gray-900 border border-gray-700 rounded-lg">
+                            <span class="font-semibold text-xs text-white block mb-1">Adjustment Guide:</span>
+                            <ul class="text-[11px] list-disc list-inside text-gray-500 ml-2 space-y-1">
+                                <li>If **Losing** too fast or **Gaining** too slowly: **Increase** your daily calories by **100-200** (via Carbs/Fats).</li>
+                                <li>If **Losing** too slowly or **Gaining** too fast: **Decrease** your daily calories by **100-200** (via Carbs/Fats).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-600 mt-3 text-center">
+                        Track your weight and look for weekly averages/trends, not daily fluctuations.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <p id="macro-error" class="text-red-500 text-sm mt-4 hidden text-center">
+                Please ensure all required fields are filled out with valid numbers.
+            </p>
+        </div>
+    </main>
+
+    <!-- Footer (Code Block 1) -->
+    <footer class="w-full text-center py-6 text-gray-600 text-xs">
+        <p>&copy; 2024 Circular Roots Coaching. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Modals from Code Block 2 (Styling adjusted for dark background) -->
+    
+    <!-- 1. Goal Info Modal -->
+    <div id="goal-info-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true" id="modal-backdrop-goal"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-900 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full w-full max-w-xs mx-auto text-white">
+                <div class="p-6 sm:p-8">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <h3 class="text-lg font-bold uppercase" id="modal-title">Understanding Your Goal</h3>
+                        <button type="button" id="modal-close-goal-btn" class="text-gray-400 hover:text-white p-1 transition duration-150 rounded-full">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <div>
+                            <p class="font-bold text-white mb-1">Fat Loss (Deficit) - (TDEE x 0.8)</p>
+                            <p>A **lower calorie intake** to ensure the body burns stored fat for energy. Macros support muscle retention while in the deficit.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Muscle Building (Surplus) - (TDEE x 1.15)</p>
+                            <p>A slightly **higher calorie intake** to fuel muscle hypertrophy. High protein intake is crucial for maximizing growth.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Body Recomposition (Maintenance) - (TDEE)</p>
+                            <p>Eating **at or near your maintenance calories** (TDEE) to build muscle and lose fat simultaneously. Suitable for beginners or those returning to training.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 2. Activity Info Modal -->
+    <div id="activity-info-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title-activity" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true" id="modal-backdrop-activity"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-900 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full w-full max-w-xs mx-auto text-white">
+                <div class="p-6 sm:p-8">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <h3 class="text-lg font-bold uppercase" id="modal-title-activity">Understanding Activity Levels</h3>
+                        <button type="button" id="modal-close-activity-btn" class="text-gray-400 hover:text-white p-1 transition duration-150 rounded-full">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <div><p class="font-bold text-white mb-1">Sedentary (1.2)</p><p>Little to no exercise. Mostly sitting, desk job, minimal walking.</p></div>
+                        <div><p class="font-bold text-white mb-1">Light (1.375)</p><p>Light exercise or sports 1-3 days per week. Moderate activity, active walking.</p></div>
+                        <div><p class="font-bold text-white mb-1">Moderate (1.55)</p><p>Moderate exercise or sports 3-5 days per week. Consistent weight training or regular cardio.</p></div>
+                        <div><p class="font-bold text-white mb-1">Very Active (1.725)</p><p>Hard exercise or sports 6-7 days per week. Daily intensive training sessions.</p></div>
+                        <div><p class="font-bold text-white mb-1">Extra Active (1.9)</p><p>Very hard exercise, daily physical training, or a physically laborious job (e.g., construction).</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3. Macro Split Info Modal -->
+    <div id="macro-split-info-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title-macro-split" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" aria-hidden="true" id="modal-backdrop-macro-split"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-gray-900 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full w-full max-w-xs mx-auto text-white">
+                <div class="p-6 sm:p-8">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <h3 class="text-lg font-bold uppercase" id="modal-title-macro-split">Understanding Macro Splits</h3>
+                        <button type="button" id="modal-close-macro-split-btn" class="text-gray-400 hover:text-white p-1 transition duration-150 rounded-full">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <p class="font-bold text-white mb-1 text-xs">P:F:C = Protein % : Fat % : Carbohydrate %</p>
+                        <div>
+                            <p class="font-bold text-white mb-1">Balanced (40:20:40)</p>
+                            <p>High protein for muscle support, moderate carbs for fuel, and minimal fat. Excellent for **muscle building** phases.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white mb-1">Moderate (30:30:40)</p>
+                            <p>A balanced approach. Good for general **fat loss** and maintaining energy while ensuring enough fat for hormone health.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white mb-1">High Protein (50:20:30)</p>
+                            <p>Maximum protein for satiety and muscle retention, with lower carbs and fat. Often used during **aggressive fat loss** phases.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('calculator-form');
+            const resultsDiv = document.getElementById('results');
+            const resultsTitle = document.getElementById('results-title');
+            
+            // Global state for unit system
+            let unitSystem = 'metric'; // 'metric' or 'imperial'
+
+            // --- Utility Functions ---
+
+            /**
+             * Shows a temporary, non-blocking notification message.
+             * @param {string} message The message to display.
+             * @param {string} type 'success' or 'error'.
+             */
+            function showNotification(message, type) {
+                const bgColor = type === 'success' ? '#10b981' : '#ef4444'; // Tailwind green-500 or red-500
+                const tempMessage = document.createElement('div');
+                tempMessage.textContent = message;
+                tempMessage.style.cssText = `
+                    position: fixed; 
+                    top: 20px; 
+                    left: 50%; 
+                    transform: translateX(-50%); 
+                    background: ${bgColor}; 
+                    color: white; 
+                    padding: 12px 20px; 
+                    border-radius: 8px; 
+                    z-index: 1000; 
+                    font-weight: bold; 
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                    transition: opacity 0.3s ease-in-out;
+                `;
+                document.body.appendChild(tempMessage);
+                
+                // Auto-remove after 3 seconds
+                setTimeout(() => {
+                    tempMessage.style.opacity = '0';
+                    setTimeout(() => tempMessage.remove(), 300);
+                }, 3000);
+            }
+            
+            /**
+             * Handles opening and closing for all modals.
+             */
+            function setupModal(infoBtnId, modalId, closeBtnId, backdropId) {
+                const infoBtn = document.getElementById(infoBtnId);
+                const modal = document.getElementById(modalId);
+                const closeBtn = document.getElementById(closeBtnId);
+                const backdrop = document.getElementById(backdropId);
+
+                const showModal = () => modal.classList.remove('hidden');
+                const hideModal = () => modal.classList.add('hidden');
+
+                if (infoBtn) infoBtn.addEventListener('click', showModal);
+                if (closeBtn) closeBtn.addEventListener('click', hideModal);
+                if (backdrop) backdrop.addEventListener('click', hideModal);
+            }
+
+            // Setup all three info modals (Logic from Block 2)
+            setupModal('info-goal-btn', 'goal-info-modal', 'modal-close-goal-btn', 'modal-backdrop-goal');
+            setupModal('info-activity-btn', 'activity-info-modal', 'modal-close-activity-btn', 'modal-backdrop-activity');
+            setupModal('info-macro-split-btn', 'macro-split-info-modal', 'modal-close-macro-split-btn', 'modal-backdrop-macro-split');
+
+
+            // --- Unit Conversion Logic (From Code Block 2) ---
+
+            const unitToggle = document.getElementById('unit-toggle');
+            const toggleSpan = unitToggle.querySelector('span');
+            const metricLabel = document.getElementById('unit-label-metric');
+            const imperialLabel = document.getElementById('unit-label-imperial');
+            
+            // Input groups
+            const weightKgGroup = document.getElementById('weight_kg_group');
+            const weightLbsGroup = document.getElementById('weight_lbs_group');
+            const heightCmGroup = document.getElementById('height_cm_group');
+            const heightFtInGroup = document.getElementById('height_ft_in_group');
+
+            function updateUnitSystem() {
+                if (unitSystem === 'metric') {
+                    // Switch to Imperial
+                    unitSystem = 'imperial';
+                    unitToggle.setAttribute('aria-checked', 'true');
+                    toggleSpan.classList.add('unit-toggle-switch-imperial');
+                    toggleSpan.classList.remove('unit-toggle-switch-metric');
+                    unitToggle.classList.add('unit-toggle-bg-imperial');
+                    unitToggle.classList.remove('unit-toggle-bg-metric');
+                    
+                    metricLabel.classList.remove('font-bold', 'text-white');
+                    metricLabel.classList.add('font-medium', 'text-gray-500');
+                    imperialLabel.classList.add('font-bold', 'text-white');
+                    imperialLabel.classList.remove('font-medium', 'text-gray-500');
+
+                    // Hide Metric, Show Imperial inputs
+                    weightKgGroup.classList.add('hidden');
+                    heightCmGroup.classList.add('hidden');
+                    weightLbsGroup.classList.remove('hidden');
+                    heightFtInGroup.classList.remove('hidden');
+                    
+                    // Set required attributes for current system
+                    document.getElementById('weight_kg').removeAttribute('required');
+                    document.getElementById('height_cm').removeAttribute('required');
+                    document.getElementById('weight_lbs').setAttribute('required', 'required');
+                    document.getElementById('height_ft').setAttribute('required', 'required');
+                    document.getElementById('height_in').setAttribute('required', 'required');
+
+                } else {
+                    // Switch to Metric
+                    unitSystem = 'metric';
+                    unitToggle.setAttribute('aria-checked', 'false');
+                    toggleSpan.classList.remove('unit-toggle-switch-imperial');
+                    toggleSpan.classList.add('unit-toggle-switch-metric');
+                    unitToggle.classList.remove('unit-toggle-bg-imperial');
+                    unitToggle.classList.add('unit-toggle-bg-metric');
+                    
+                    metricLabel.classList.add('font-bold', 'text-white');
+                    metricLabel.classList.remove('font-medium', 'text-gray-500');
+                    imperialLabel.classList.remove('font-bold', 'text-white');
+                    imperialLabel.classList.add('font-medium', 'text-gray-500');
+                    
+                    // Hide Imperial, Show Metric inputs
+                    weightKgGroup.classList.remove('hidden');
+                    heightCmGroup.classList.remove('hidden');
+                    weightLbsGroup.classList.add('hidden');
+                    heightFtInGroup.classList.add('hidden');
+                    
+                    // Set required attributes for current system
+                    document.getElementById('weight_kg').setAttribute('required', 'required');
+                    document.getElementById('height_cm').setAttribute('required', 'required');
+                    document.getElementById('weight_lbs').removeAttribute('required');
+                    document.getElementById('height_ft').removeAttribute('required');
+                    document.getElementById('height_in').removeAttribute('required');
+                }
+                
+                // Hide results when changing units
+                resultsDiv.classList.add('hidden');
+            }
+
+            unitToggle.addEventListener('click', updateUnitSystem);
+            
+            // Initialize required fields on load (Metric is default)
+            document.getElementById('weight_kg').setAttribute('required', 'required');
+            document.getElementById('height_cm').setAttribute('required', 'required');
+
+
+            // --- Calculator Logic (From Code Block 2) ---
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                
+                const gender = document.getElementById('gender').value;
+                const age = parseFloat(document.getElementById('age').value); 
+                const activityFactor = parseFloat(document.getElementById('activity').value);
+                const goal = document.getElementById('goal').value;
+                const macroSplitString = document.getElementById('macro-split').value; 
+
+                let weight, height; 
+
+                // --- Input Conversion to Metric (For Mifflin-St Jeor) ---
+                if (unitSystem === 'metric') {
+                    weight = parseFloat(document.getElementById('weight_kg').value); 
+                    height = parseFloat(document.getElementById('height_cm').value);
+                } else {
+                    // Imperial inputs
+                    const weightLbs = parseFloat(document.getElementById('weight_lbs').value);
+                    const heightFt = parseFloat(document.getElementById('height_ft').value);
+                    const heightIn = parseFloat(document.getElementById('height_in').value);
+                    
+                    // Check for general required fields
+                    if (isNaN(weightLbs) || isNaN(heightFt) || isNaN(heightIn) || !gender || isNaN(age) || isNaN(activityFactor) || !goal || !macroSplitString) {
+                        document.getElementById('macro-error').classList.remove('hidden');
+                        return;
+                    }
+                    document.getElementById('macro-error').classList.add('hidden');
+
+                    // Convert LBS to KG: 1 lb = 0.453592 kg
+                    weight = weightLbs * 0.453592;
+                    
+                    // Convert FT/IN to CM: 1 ft = 30.48 cm, 1 in = 2.54 cm
+                    height = (heightFt * 30.48) + (heightIn * 2.54);
+                }
+
+                // Final input validation using the now standardized metric values
+                if (!gender || isNaN(age) || isNaN(weight) || isNaN(height) || isNaN(activityFactor) || !goal || !macroSplitString) {
+                     document.getElementById('macro-error').classList.remove('hidden');
+                    return;
+                }
+                document.getElementById('macro-error').classList.add('hidden');
+
+
+                // 2. Calculate Basal Metabolic Rate (BMR) using Mifflin-St Jeor Equation (Metric)
+                let bmr = 0;
+                if (gender === 'male') {
+                    // Male BMR: (10 * kg) + (6.25 * cm) - (5 * age) + 5
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else if (gender === 'female') {
+                    // Female BMR: (10 * kg) + (6.25 * cm) - (5 * age) - 161
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+
+                // 3. Calculate Total Daily Energy Expenditure (TDEE)
+                const tdee = bmr * activityFactor;
+
+                // 4. Adjust TDEE based on the Target Goal 
+                let calorieTarget = tdee;
+                let goalText = '';
+                let goalLabelText = 'Body Recomposition Calories';
+
+                if (goal === 'fatloss') {
+                    calorieTarget = tdee * 0.8; // 20% deficit
+                    goalText = 'FAT LOSS Targets';
+                    goalLabelText = 'Calorie Deficit Target';
+                } else if (goal === 'muscle') {
+                    calorieTarget = tdee * 1.15; // 15% surplus
+                    goalText = 'MUSCLE BUILDING Targets';
+                    goalLabelText = 'Calorie Surplus Target';
+                } else if (goal === 'recomp') {
+                    calorieTarget = tdee; // Maintenance
+                    goalText = 'BODY RECOMPOSITION Targets';
+                    goalLabelText = 'Maintenance Calorie Target';
+                }
+                
+                const roundedCalorieTarget = Math.round(calorieTarget);
+
+                // 5. Calculate Macronutrients
+                // Split value is P-F-C
+                const splitPercentages = macroSplitString.split('-').map(p => parseFloat(p) / 100);
+                const proteinPercent = splitPercentages[0]; 
+                const fatPercent = splitPercentages[1];    
+                const carbPercent = splitPercentages[2];   
+
+                // Gram Conversion: P/C (4 cal/g), F (9 cal/g)
+                const proteinGrams = Math.round((roundedCalorieTarget * proteinPercent) / 4);
+                const fatGrams = Math.round((roundedCalorieTarget * fatPercent) / 9);
+                const carbGrams = Math.round((roundedCalorieTarget * carbPercent) / 4);
+                
+                // 6. Display Results
+                document.getElementById('calorie-target').textContent = `${roundedCalorieTarget.toLocaleString()}`;
+                document.getElementById('goal-calorie-label').textContent = goalLabelText;
+                document.getElementById('protein-g').textContent = `${proteinGrams.toLocaleString()} g`;
+                document.getElementById('fat-g').textContent = `${fatGrams.toLocaleString()} g`;
+                document.getElementById('carbs-g').textContent = `${carbGrams.toLocaleString()} g`;
+                document.getElementById('tdee-val').textContent = `${Math.round(tdee).toLocaleString()} calories`;
+                
+                resultsTitle.textContent = `Your ${goalText}`;
+                resultsDiv.classList.remove('hidden');
+                
+                // Store results for copying
+                resultsDiv.dataset.calories = roundedCalorieTarget.toLocaleString();
+                resultsDiv.dataset.protein = proteinGrams.toLocaleString();
+                resultsDiv.dataset.fat = fatGrams.toLocaleString();
+                resultsDiv.dataset.carbs = carbGrams.toLocaleString();
+                resultsDiv.dataset.goalText = goalText;
+
+                // Scroll to results for better mobile UX
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+
+            // --- Reset and Copy Functions (From Code Block 2) ---
+
+            /**
+             * Resets the entire calculator form and hides results.
+             */
+            function resetCalculator() {
+                form.reset();
+                resultsDiv.classList.add('hidden');
+                document.getElementById('macro-error').classList.add('hidden');
+                showNotification('Calculator reset successfully.', 'success');
+                // Ensure units reset visually
+                if (unitSystem !== 'metric') {
+                    updateUnitSystem(); // toggle back to metric
+                }
+                // Scroll back to the top of the form
+                document.body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /**
+             * Copies the calculated results to the clipboard.
+             */
+            function copyResults() {
+                const goalText = resultsDiv.dataset.goalText || 'Macro Targets';
+                const calories = resultsDiv.dataset.calories;
+                const protein = resultsDiv.dataset.protein;
+                const fat = resultsDiv.dataset.fat;
+                const carbs = resultsDiv.dataset.carbs;
+                const tdee = document.getElementById('tdee-val').textContent;
+
+                if (!calories) {
+                    showNotification('Please calculate targets first.', 'error');
+                    return;
+                }
+
+                const textToCopy = `
+COACH CHRIS | ${goalText}
+--------------------------------
+Goal Calorie Target: ${calories} calories
+Protein: ${protein} g
+Fat: ${fat} g
+Carbohydrates: ${carbs} g
+
+Est. Daily Maintenance (TDEE): ${tdee}
+                `.trim();
+
+                // Use document.execCommand('copy') for better compatibility in iframe/mobile contexts
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                textarea.style.position = 'fixed'; 
+                textarea.style.top = '0';
+                textarea.style.left = '0';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+
+                try {
+                    document.execCommand('copy');
+                    showNotification('Targets copied to clipboard!', 'success');
+                } catch (err) {
+                    console.error('Could not copy text: ', err);
+                    showNotification('Failed to copy targets.', 'error');
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+
+            // Attach event listeners for new buttons
+            document.getElementById('reset-btn').addEventListener('click', resetCalculator);
+            document.getElementById('copy-results-btn').addEventListener('click', copyResults);
+        });
+    </script>
+</body>
+</html>
+
